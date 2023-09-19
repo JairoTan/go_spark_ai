@@ -16,9 +16,10 @@ var dbInstance *gorm.DB
 func Init() error {
 
 	source := "%s:%s@tcp(%s)/%s?readTimeout=1500ms&writeTimeout=1500ms&charset=utf8&loc=Local&&parseTime=true"
-	user := os.Getenv("root")
-	pwd := os.Getenv("6qBGPpnP")
-	addr := os.Getenv("MYSQL_ADDRESS")
+	user := os.Getenv("root")          //root
+	pwd := os.Getenv("6qBGPpnP")       //6qBGPpnP
+	addr := os.Getenv("MYSQL_ADDRESS") // https://koa-ejfg-71776-4-1321062081.sh.run.tcloudbase.com
+
 	dataBase := os.Getenv("MYSQL_DATABASE")
 	if dataBase == "" {
 		dataBase = "golang_demo"

@@ -9,6 +9,7 @@ import (
 
 	"wxcloudrun-golang/db/dao"
 	"wxcloudrun-golang/db/model"
+	"wxcloudrun-golang/util"
 
 	"gorm.io/gorm"
 )
@@ -28,6 +29,33 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprint(w, data)
+}
+
+// IndexHandler 讯飞星火接口
+func SparkAIHandler(w http.ResponseWriter, r *http.Request) {
+	res := &JsonResult{}
+	answer, err := getSparkAnswer()
+	if err != nil {
+		res.Code = -1
+		res.ErrorMsg = err.Error()
+	} else {
+		res.Data = answer
+	}
+
+	msg, err := json.Marshal(res)
+	if err != nil {
+		fmt.Fprint(w, "内部错误")
+		return
+	}
+	w.Header().Set("content-type", "application/json")
+	w.Write(msg)
+}
+
+// getSparkAnswer 查询sparkAI
+func getSparkAnswer() (string, error) {
+	answer := util.GetAnswer()
+
+	return answer, nil
 }
 
 // CounterHandler 计数器接口
