@@ -21,6 +21,13 @@ type JsonResult struct {
 	Data     interface{} `json:"data"`
 }
 
+// Request 结构
+type RequestBody struct {
+	ToUserName   string `json:"ToUserName"`
+	FromUserName string `json:"FromUserName"`
+	Content      string `json:"Content"`
+}
+
 // IndexHandler 计数器接口
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := getIndex()
@@ -34,7 +41,23 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 // IndexHandler 讯飞星火接口
 func SparkAIHandler(w http.ResponseWriter, r *http.Request) {
 	res := &JsonResult{}
-	answer, err := getSparkAnswer(r)
+
+	var requestBody RequestBody
+
+	// 读取请求体
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// 解析 JSON 请求体
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	answer, err := getSparkAnswer(requestBody.Content)
 	if err != nil {
 		res.Code = -1
 		res.ErrorMsg = err.Error()
@@ -52,8 +75,8 @@ func SparkAIHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // getSparkAnswer 查询sparkAI
-func getSparkAnswer(r *http.Request) (string, error) {
-	answer := util.GetAnswer(r.URL.Query().Get("Content"))
+func getSparkAnswer(content string) (string, error) {
+	answer := util.GetAnswer(content)
 
 	return answer, nil
 }
