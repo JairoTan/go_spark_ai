@@ -18,7 +18,7 @@ func Init() error {
 	source := "%s:%s@tcp(%s)/%s?readTimeout=1500ms&writeTimeout=1500ms&charset=utf8&loc=Local&&parseTime=true"
 	user := "root"
 	pwd := "6qBGPpnP"
-	addr := "sh-cynosdbmysql-grp-r8exzgxi.sql.tencentcdb.com:25046" //sh-cynosdbmysql-grp-r8exzgxi.sql.tencentcdb.com:25046		10.49.106.9:3306
+	addr := "10.49.106.9:3306" //sh-cynosdbmysql-grp-r8exzgxi.sql.tencentcdb.com:25046		10.49.106.9:3306
 
 	dataBase := os.Getenv("MYSQL_DATABASE")
 	if dataBase == "" {
