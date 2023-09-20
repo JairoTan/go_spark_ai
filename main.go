@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"wxcloudrun-golang/db"
-	"wxcloudrun-golang/service"
+	"go_spark_ai/db"
+	"go_spark_ai/service"
 
 	"github.com/gin-gonic/gin"
 )

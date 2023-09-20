@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"wxcloudrun-golang/util"
+	"go_spark_ai/util"
 
 	"github.com/gin-gonic/gin"
 )
