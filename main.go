@@ -7,16 +7,17 @@ import (
 
 	"wxcloudrun-golang/db"
 	"wxcloudrun-golang/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	if err := db.Init(); err != nil {
 		panic(fmt.Sprintf("mysql init failed with %+v", err))
 	}
+	router := gin.Default()
 
-	http.HandleFunc("/", service.IndexHandler)
-	http.HandleFunc("/api/count", service.CounterHandler)
-	http.HandleFunc("/message/post", service.SparkAIHandler)
+	router.GET("/message/post", service.SparkAIHandler)
 
 	fmt.Println("Service Listening port: 80")
 	log.Fatal(http.ListenAndServe(":80", nil))

@@ -28,7 +28,7 @@ var (
 	apiKey    = "45ec366167ba190909c776cc42a13484"
 )
 
-func GetAnswer(question string) string {
+func SparkAnswer(question string) string {
 	// fmt.Println(HmacWithShaTobase64("hmac-sha256", "hello\nhello", "hello"))
 	// st := time.Now()
 	d := websocket.Dialer{
