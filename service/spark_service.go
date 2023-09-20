@@ -27,14 +27,14 @@ type MsgBody struct {
 }
 
 // IndexHandler 讯飞星火接口
-func SparkAIHandler(c *gin.Context) {
-	//res := &JsonResult{}
+func SparkAIHandler(c *gin.Context) string {
+	res := &JsonResult{}
 
 	var textMsg MsgBody
 	err := c.ShouldBindJSON(&textMsg)
 	if err != nil {
 		log.Printf("[消息接收] - JSON数据包解析失败: %v\n", err)
-		return
+		return "fail"
 	}
 
 	log.Printf("[消息接收] - 收到消息, 消息类型为: %s, 消息内容为: %s\n", textMsg.MsgType, textMsg.Content)
@@ -45,7 +45,9 @@ func SparkAIHandler(c *gin.Context) {
 	// 对接收的消息进行被动回复
 	WXMsgReply(c, textMsg.FromUserName, textMsg.ToUserName, answer)
 
-	return
+	res.Data = answer
+
+	return "success"
 }
 
 // WXMsgReply 微信消息回复
