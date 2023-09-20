@@ -35,7 +35,7 @@ import (
 func main() {
 	r := gin.Default()
 
-	r.POST("/send", func(c *gin.Context) {
+	r.POST("/spark/answer", func(c *gin.Context) {
 		var reqMsg struct {
 			ToUserName   string `json:"ToUserName"`
 			FromUserName string `json:"FromUserName"`
@@ -60,7 +60,13 @@ func main() {
 				"Content":      answer,
 			})
 		} else {
-			c.String(http.StatusOK, "success")
+			c.JSON(http.StatusOK, gin.H{
+				"ToUserName":   reqMsg.FromUserName,
+				"FromUserName": reqMsg.ToUserName,
+				"CreateTime":   reqMsg.CreateTime,
+				"MsgType":      "text",
+				"Content":      "暂时不支持文本之外的回复",
+			})
 		}
 	})
 
