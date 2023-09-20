@@ -64,36 +64,36 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 // IndexHandler 讯飞星火接口
 func SparkAIHandler(w http.ResponseWriter, r *http.Request) {
-	//res := &JsonResult{}
-
-	var textMsg ResponseBody
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&textMsg); err != nil {
-		log.Printf("[消息接收] - JSON数据包解析失败: %v\n", err)
-		http.Error(w, "Bad Request", http.StatusBadRequest)
-		return
-	}
-
-	log.Printf("[消息接收] - 收到消息, 消息类型为: %s, 消息内容为: %s\n", textMsg.MsgType, textMsg.Content)
-
-	answer, err := getSparkAnswer(textMsg.Content)
-	//if err != nil {
-	//	res.Code = -1
-	//	res.ErrorMsg = err.Error()
-	//} else {
-	//	res.Data = answer
-	//}
-
-	msg, err := json.Marshal(textMsg)
+	res := &JsonResult{}
+	msg, err := json.Marshal(res)
 	if err != nil {
 		fmt.Fprint(w, "内部错误")
 		return
 	}
 	w.Header().Set("content-type", "application/json")
 	w.Write(msg)
-
-	// 对接收的消息进行被动回复
-	WXMsgReply(w, textMsg.ToUserName, textMsg.FromUserName, answer)
+	//var textMsg ResponseBody
+	//decoder := json.NewDecoder(r.Body)
+	//if err := decoder.Decode(&textMsg); err != nil {
+	//	log.Printf("[消息接收] - JSON数据包解析失败: %v\n", err)
+	//	http.Error(w, "Bad Request", http.StatusBadRequest)
+	//	return
+	//}
+	//
+	//log.Printf("[消息接收] - 收到消息, 消息类型为: %s, 消息内容为: %s\n", textMsg.MsgType, textMsg.Content)
+	//
+	//answer, err := getSparkAnswer(textMsg.Content)
+	//
+	//msg, err := json.Marshal(textMsg)
+	//if err != nil {
+	//	fmt.Fprint(w, "内部错误")
+	//	return
+	//}
+	//w.Header().Set("content-type", "application/json")
+	//w.Write(msg)
+	//
+	//// 对接收的消息进行被动回复
+	//WXMsgReply(w, textMsg.ToUserName, textMsg.FromUserName, answer)
 }
 
 // getSparkAnswer 查询sparkAI
