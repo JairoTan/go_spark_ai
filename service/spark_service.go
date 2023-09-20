@@ -10,6 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// JsonResult 返回结构
+type JsonResult struct {
+	Code     int         `json:"code"`
+	ErrorMsg string      `json:"errorMsg,omitempty"`
+	Data     interface{} `json:"data"`
+}
+
 // MsgBody 微信回复文本消息结构体
 type MsgBody struct {
 	ToUserName   string
@@ -21,6 +28,8 @@ type MsgBody struct {
 
 // IndexHandler 讯飞星火接口
 func SparkAIHandler(c *gin.Context) {
+	//res := &JsonResult{}
+
 	var textMsg MsgBody
 	err := c.ShouldBindJSON(&textMsg)
 	if err != nil {
@@ -35,6 +44,8 @@ func SparkAIHandler(c *gin.Context) {
 
 	// 对接收的消息进行被动回复
 	WXMsgReply(c, textMsg.FromUserName, textMsg.ToUserName, answer)
+
+	return
 }
 
 // WXMsgReply 微信消息回复
