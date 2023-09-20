@@ -43,12 +43,23 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 // IndexHandler 讯飞星火接口
 func SparkAIHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := SparkAI(w, r)
+	res := &JsonResult{}
+
+	answer, err := SparkAI(w, r)
+	if err != nil {
+		res.Code = -1
+		res.ErrorMsg = err.Error()
+	} else {
+		res.Data = answer
+	}
+
+	msg, err := json.Marshal(res)
 	if err != nil {
 		fmt.Fprint(w, "内部错误")
 		return
 	}
-	fmt.Fprint(w, data)
+	w.Header().Set("content-type", "application/json")
+	w.Write(msg)
 }
 
 // SparkAI 查询sparkAI
