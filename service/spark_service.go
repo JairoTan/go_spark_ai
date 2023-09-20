@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"log"
+	"net/http"
 	"time"
 
 	"go_spark_ai/util"
@@ -27,14 +28,14 @@ type MsgBody struct {
 }
 
 // IndexHandler 讯飞星火接口
-func SparkAIHandler(c *gin.Context) string {
+func SparkAIHandler(c *gin.Context) {
 	res := &JsonResult{}
 
 	var textMsg MsgBody
 	err := c.ShouldBindJSON(&textMsg)
 	if err != nil {
 		log.Printf("[消息接收] - JSON数据包解析失败: %v\n", err)
-		return "fail"
+		return
 	}
 
 	log.Printf("[消息接收] - 收到消息, 消息类型为: %s, 消息内容为: %s\n", textMsg.MsgType, textMsg.Content)
@@ -47,7 +48,7 @@ func SparkAIHandler(c *gin.Context) string {
 
 	res.Data = answer
 
-	return "success"
+	c.String(http.StatusOK, "success") // 发送成功响应
 }
 
 // WXMsgReply 微信消息回复
