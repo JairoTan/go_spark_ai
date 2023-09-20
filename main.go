@@ -50,20 +50,15 @@ func main() {
 		}
 
 		if reqMsg.MsgType == "text" {
-			switch reqMsg.Content {
-			case "你是":
-				//获取星火AI
-				answer := util.SparkAnswer(reqMsg.Content)
-				c.JSON(http.StatusOK, gin.H{
-					"ToUserName":   reqMsg.FromUserName,
-					"FromUserName": reqMsg.ToUserName,
-					"CreateTime":   reqMsg.CreateTime,
-					"MsgType":      "text",
-					"Content":      answer,
-				})
-			default:
-				c.String(http.StatusOK, "success")
-			}
+			//获取星火AI
+			answer := util.SparkAnswer(reqMsg.Content)
+			c.JSON(http.StatusOK, gin.H{
+				"ToUserName":   reqMsg.FromUserName,
+				"FromUserName": reqMsg.ToUserName,
+				"CreateTime":   reqMsg.CreateTime,
+				"MsgType":      "text",
+				"Content":      answer,
+			})
 		} else {
 			c.String(http.StatusOK, "success")
 		}
