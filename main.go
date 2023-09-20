@@ -16,7 +16,8 @@ func main() {
 
 	http.HandleFunc("/", service.IndexHandler)
 	http.HandleFunc("/api/count", service.CounterHandler)
-	http.HandleFunc("/messqge/post", service.SparkAIHandler)
+	http.HandleFunc("/message/post", service.SparkAIHandler)
 
+	fmt.Println("Service Listening port: 80")
 	log.Fatal(http.ListenAndServe(":80", nil))
 }
