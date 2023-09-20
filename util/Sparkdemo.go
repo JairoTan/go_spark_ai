@@ -28,7 +28,7 @@ var (
 	apiKey    = "45ec366167ba190909c776cc42a13484"
 )
 
-func GetAnswer() string {
+func GetAnswer(question string) string {
 	// fmt.Println(HmacWithShaTobase64("hmac-sha256", "hello\nhello", "hello"))
 	// st := time.Now()
 	d := websocket.Dialer{
@@ -45,7 +45,7 @@ func GetAnswer() string {
 
 	go func() {
 
-		data := genParams1(appid, "你是谁，可以干什么？")
+		data := genParams1(appid, question)
 		conn.WriteJSON(data)
 
 	}()

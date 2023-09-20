@@ -34,7 +34,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 // IndexHandler 讯飞星火接口
 func SparkAIHandler(w http.ResponseWriter, r *http.Request) {
 	res := &JsonResult{}
-	answer, err := getSparkAnswer()
+	answer, err := getSparkAnswer(r)
 	if err != nil {
 		res.Code = -1
 		res.ErrorMsg = err.Error()
@@ -52,8 +52,8 @@ func SparkAIHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // getSparkAnswer 查询sparkAI
-func getSparkAnswer() (string, error) {
-	answer := util.GetAnswer()
+func getSparkAnswer(r *http.Request) (string, error) {
+	answer := util.GetAnswer(r.URL.Query().Get("Content"))
 
 	return answer, nil
 }
