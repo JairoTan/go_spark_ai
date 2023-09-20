@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -21,11 +22,34 @@ type JsonResult struct {
 	Data     interface{} `json:"data"`
 }
 
-// Request 结构
-type RequestBody struct {
-	ToUserName   string `json:"ToUserName"`
-	FromUserName string `json:"FromUserName"`
-	Content      string `json:"Content"`
+// ResponseBody 微信回复文本消息结构体
+type ResponseBody struct {
+	ToUserName   string
+	FromUserName string
+	CreateTime   int64
+	MsgType      string
+	Content      string
+}
+
+// WXMsgReply 微信消息回复
+func WXMsgReply(w http.ResponseWriter, fromUser, toUser, content string) {
+	repTextMsg := ResponseBody{
+		ToUserName:   toUser,
+		FromUserName: fromUser,
+		CreateTime:   time.Now().Unix(),
+		MsgType:      "text",
+		Content:      content,
+	}
+
+	msg, err := json.Marshal(&repTextMsg)
+	if err != nil {
+		log.Printf("[消息回复] - 将对象进行JSON编码出错: %v\n", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(msg)
 }
 
 // IndexHandler 计数器接口
@@ -40,38 +64,36 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 // IndexHandler 讯飞星火接口
 func SparkAIHandler(w http.ResponseWriter, r *http.Request) {
-	res := &JsonResult{}
+	//res := &JsonResult{}
 
-	var requestBody RequestBody
-
-	// 读取请求体
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	// 解析 JSON 请求体
-	if err := json.Unmarshal(body, &requestBody); err != nil {
+	var textMsg ResponseBody
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&textMsg); err != nil {
+		log.Printf("[消息接收] - JSON数据包解析失败: %v\n", err)
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
-	answer, err := getSparkAnswer(requestBody.Content)
-	if err != nil {
-		res.Code = -1
-		res.ErrorMsg = err.Error()
-	} else {
-		res.Data = answer
-	}
+	log.Printf("[消息接收] - 收到消息, 消息类型为: %s, 消息内容为: %s\n", textMsg.MsgType, textMsg.Content)
 
-	msg, err := json.Marshal(res)
+	answer, err := getSparkAnswer(textMsg.Content)
+	//if err != nil {
+	//	res.Code = -1
+	//	res.ErrorMsg = err.Error()
+	//} else {
+	//	res.Data = answer
+	//}
+
+	msg, err := json.Marshal(textMsg)
 	if err != nil {
 		fmt.Fprint(w, "内部错误")
 		return
 	}
 	w.Header().Set("content-type", "application/json")
 	w.Write(msg)
+
+	// 对接收的消息进行被动回复
+	WXMsgReply(w, textMsg.ToUserName, textMsg.FromUserName, answer)
 }
 
 // getSparkAnswer 查询sparkAI
