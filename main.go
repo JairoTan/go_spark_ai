@@ -55,6 +55,7 @@ func main() {
 		}
 		message.Text.Content = answer
 
+		fmt.Println("微信接口入参：", message)
 		// 将消息体转换为 JSON
 		requestBody, err := json.Marshal(message)
 		if err != nil {
@@ -65,6 +66,7 @@ func main() {
 		// 发送 POST 请求到微信接口
 		url := "http://api.weixin.qq.com/cgi-bin/message/custom/send?from_appid=" + reqMsg.ToUserName
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
+		fmt.Println("微信接口url：", url)
 		fmt.Println("微信接口返回内容：", resp)
 		if err != nil {
 			fmt.Println("请求微信接口报错：", err)
