@@ -29,8 +29,11 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "JSON数据包解析失败"})
 			return
 		}
+
+		appid := c.GetHeader("x-wx-from-appid")
 		openid := c.GetHeader("x-wx-openid")
-		fmt.Printf("接收用户openid为 %s 的 %s 消息：%s", openid, reqMsg.MsgType, reqMsg.Content)
+		fmt.Printf("推送接收的账号 %s", reqMsg.FromUserName)
+		fmt.Printf("公众号 %s 接收用户openid为 %s 的 %s 消息：%s", appid, openid, reqMsg.MsgType, reqMsg.Content)
 		//获取星火AI
 		var answer string
 		if reqMsg.MsgType == "text" {
@@ -49,7 +52,7 @@ func main() {
 				Content string `json:"content"`
 			} `json:"text"`
 		}{
-			ToUser:  openid,
+			ToUser:  reqMsg.FromUserName,
 			MsgType: "text",
 		}
 		message.Text.Content = reqMsg.Content
@@ -63,8 +66,9 @@ func main() {
 		}
 
 		// 发送 POST 请求到微信接口
-		url := "http://api.weixin.qq.com/cgi-bin/message/custom/send"
+		url := "http://api.weixin.qq.com/cgi-bin/message/custom/send?from_appid=" + appid
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
+		fmt.Println("微信接口返回内容：", resp)
 		if err != nil {
 			fmt.Println("请求微信接口报错：", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
