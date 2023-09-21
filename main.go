@@ -73,7 +73,7 @@ func main() {
 		}
 
 		// 发送 POST 请求到微信接口
-		url := "http://api.weixin.qq.com/cgi-bin/message/custom/send?from_appid=" + reqMsg.ToUserName
+		url := "http://api.weixin.qq.com/cgi-bin/message/custom/send"
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
 		fmt.Println("微信接口url：", url)
 		fmt.Println("微信接口返回内容：", resp)
