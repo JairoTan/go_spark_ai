@@ -17,14 +17,24 @@ func main() {
 	//客服消息
 	r.POST("/customer/message", func(c *gin.Context) {
 		// 获取请求参数
+		var reqMsg struct {
+			ToUserName   string `json:"ToUserName"`
+			FromUserName string `json:"FromUserName"`
+			MsgType      string `json:"MsgType"`
+			Content      string `json:"Content"`
+			CreateTime   int64  `json:"CreateTime"`
+		}
+
+		if err := c.BindJSON(&reqMsg); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "JSON数据包解析失败"})
+			return
+		}
 		openid := c.GetHeader("x-wx-openid")
-		msgType := c.PostForm("MsgType")
-		content := c.PostForm("Content")
-		fmt.Printf("接收用户openid为 %s 的 %s 消息：%s", openid, msgType, content)
+		fmt.Printf("接收用户openid为 %s 的 %s 消息：%s", openid, reqMsg.MsgType, reqMsg.Content)
 		//获取星火AI
 		var answer string
-		if msgType == "text" {
-			answer, _ = util.SparkAnswer(content)
+		if reqMsg.MsgType == "text" {
+			answer, _ = util.SparkAnswer(reqMsg.Content)
 			fmt.Println("星火AI回答：", answer)
 		} else {
 			answer = "暂不支持文本以外的消息回复"
@@ -42,7 +52,7 @@ func main() {
 			ToUser:  openid,
 			MsgType: "text",
 		}
-		message.Text.Content = content
+		message.Text.Content = reqMsg.Content
 
 		// 将消息体转换为 JSON
 		requestBody, err := json.Marshal(message)
