@@ -29,11 +29,9 @@ func main() {
 			return
 		}
 
-		appid := c.GetHeader("x-wx-from-appid")
-		fmt.Printf("公众号 %s 接收用户openid为 %s 的 %s 消息：%s", appid, reqMsg.FromUserName, reqMsg.MsgType, reqMsg.Content)
+		fmt.Printf("公众号 %s 接收用户openid为 %s 的 %s 消息：%s", reqMsg.ToUserName, reqMsg.FromUserName, reqMsg.MsgType, reqMsg.Content)
 		fmt.Println("ToUserName:", reqMsg.ToUserName)
 		fmt.Println("FromUserName:", reqMsg.FromUserName)
-		fmt.Println("Appid:", appid)
 		//获取星火AI
 		var answer string
 		if reqMsg.MsgType == "text" {
@@ -52,7 +50,7 @@ func main() {
 			"text": {
 				"content": "%s"
 			}
-		}`, reqMsg.FromUserName, answer))
+		}`, reqMsg.ToUserName, answer))
 		//message := struct {
 		//	ToUser  string `json:"touser"`
 		//	MsgType string `json:"msgtype"`
