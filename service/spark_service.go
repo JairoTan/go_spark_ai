@@ -49,7 +49,7 @@ func SparkAIHandler(c *gin.Context) {
 	log.Printf("[消息接收] - 收到消息, 消息类型为: %s, 消息内容为: %s\n", reqMsg.MsgType, reqMsg.Content)
 
 	// 获取星火AI答案
-	answer := util.SparkAnswer(reqMsg.Content)
+	answer, _ := util.SparkAnswer(reqMsg.Content)
 
 	// 对接收的消息进行被动回复
 	WXMsgReply(c, reqMsg.FromUserName, reqMsg.ToUserName, answer)

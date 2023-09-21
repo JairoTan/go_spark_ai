@@ -1,30 +1,9 @@
-//package main
-//
-//import (
-//	"fmt"
-//	"log"
-//
-//	"go_spark_ai/db"
-//	"go_spark_ai/service"
-//
-//	"github.com/gin-gonic/gin"
-//)
-//
-//func main() {
-//	if err := db.Init(); err != nil {
-//		panic(fmt.Sprintf("mysql init failed with %+v", err))
-//	}
-//	router := gin.Default()
-//
-//	router.POST("/message/post", service.SparkAIHandler)
-//
-//	fmt.Println("Service Listening port: 80")
-//	log.Fatal(router.Run(":80"))
-//}
-
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"go_spark_ai/util"
@@ -35,6 +14,67 @@ import (
 func main() {
 	r := gin.Default()
 
+	//客服消息
+	r.POST("/customer/message", func(c *gin.Context) {
+		// 获取请求参数
+		openid := c.GetHeader("x-wx-openid")
+		msgType := c.PostForm("MsgType")
+		content := c.PostForm("Content")
+		fmt.Printf("接收用户openid为 %s 的 %s 消息：%s", openid, msgType, content)
+		//获取星火AI
+		var answer string
+		if msgType == "text" {
+			answer, _ = util.SparkAnswer(content)
+			fmt.Println("星火AI回答：", answer)
+		} else {
+			answer = "暂不支持文本以外的消息回复"
+			fmt.Println("不是文本消息,拒绝回答!")
+		}
+
+		// 构建消息体
+		message := struct {
+			ToUser  string `json:"touser"`
+			MsgType string `json:"msgtype"`
+			Text    struct {
+				Content string `json:"content"`
+			} `json:"text"`
+		}{
+			ToUser:  openid,
+			MsgType: "text",
+		}
+		message.Text.Content = content
+
+		// 将消息体转换为 JSON
+		requestBody, err := json.Marshal(message)
+		fmt.Println("requestBody为：", requestBody)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// 发送 POST 请求到微信接口
+		url := "http://api.weixin.qq.com/cgi-bin/message/custom/send"
+		resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
+		if err != nil {
+			fmt.Println("请求微信接口报错：", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		defer resp.Body.Close()
+
+		// 处理响应
+		// 这里你可以解析 resp.Body 中的响应数据或者处理其他逻辑
+		// 例如，检查响应状态码和返回的 JSON 数据等
+
+		if resp.StatusCode != http.StatusOK {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "请求失败"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "客服消息发送成功"})
+	})
+
+	//被动消息回复
 	r.POST("/spark/answer", func(c *gin.Context) {
 		var reqMsg struct {
 			ToUserName   string `json:"ToUserName"`
