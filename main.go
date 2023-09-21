@@ -18,8 +18,8 @@ func main() {
 	r.POST("/customer/message", func(c *gin.Context) {
 		// 获取请求参数
 		var reqMsg struct {
-			ToUserName   string `json:"ToUserName"`
-			FromUserName string `json:"FromUserName"`
+			ToUserName   string `json:"ToUserName"`   // 小程序/公众号的原始ID，资源复用配置多个时可以区别消息是给谁的
+			FromUserName string `json:"FromUserName"` // 该小程序/公众号的用户身份openid
 			MsgType      string `json:"MsgType"`
 			Content      string `json:"Content"`
 			CreateTime   int64  `json:"CreateTime"`
@@ -31,9 +31,8 @@ func main() {
 		}
 
 		appid := c.GetHeader("x-wx-from-appid")
-		openid := c.GetHeader("x-wx-openid")
 		fmt.Printf("推送接收的账号 %s", reqMsg.FromUserName)
-		fmt.Printf("公众号 %s 接收用户openid为 %s 的 %s 消息：%s", appid, openid, reqMsg.MsgType, reqMsg.Content)
+		fmt.Printf("公众号 %s 接收用户openid为 %s 的 %s 消息：%s", appid, reqMsg.FromUserName, reqMsg.MsgType, reqMsg.Content)
 		//获取星火AI
 		var answer string
 		if reqMsg.MsgType == "text" {
@@ -55,7 +54,7 @@ func main() {
 			ToUser:  reqMsg.FromUserName,
 			MsgType: "text",
 		}
-		message.Text.Content = reqMsg.Content
+		message.Text.Content = answer
 
 		// 将消息体转换为 JSON
 		requestBody, err := json.Marshal(message)
@@ -66,7 +65,7 @@ func main() {
 		}
 
 		// 发送 POST 请求到微信接口
-		url := "http://api.weixin.qq.com/cgi-bin/message/custom/send?from_appid=" + appid
+		url := "http://api.weixin.qq.com/cgi-bin/message/custom/send"
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
 		fmt.Println("微信接口返回内容：", resp)
 		if err != nil {
@@ -86,6 +85,7 @@ func main() {
 		}
 
 		c.String(http.StatusOK, "success")
+		return
 	})
 
 	//被动消息回复
