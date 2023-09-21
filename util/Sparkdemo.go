@@ -28,76 +28,88 @@ var (
 	apiKey    = "45ec366167ba190909c776cc42a13484"
 )
 
-func SparkAnswer(question string) string {
-	// fmt.Println(HmacWithShaTobase64("hmac-sha256", "hello\nhello", "hello"))
-	// st := time.Now()
+func SparkAnswer(question string) (string, error) {
 	d := websocket.Dialer{
 		HandshakeTimeout: 5 * time.Second,
 	}
-	//握手并建立websocket 连接
+
+	// 建立 WebSocket 连接
 	conn, resp, err := d.Dial(assembleAuthUrl1(hostUrl, apiKey, apiSecret), nil)
 	if err != nil {
-		panic(readResp(resp) + err.Error())
-		return "websocket 连接失败"
-	} else if resp.StatusCode != 101 {
-		panic(readResp(resp) + err.Error())
+		return "", fmt.Errorf("WebSocket 连接失败: %s", err.Error())
+	}
+	defer conn.Close()
+
+	if resp.StatusCode != 101 {
+		return "", fmt.Errorf("WebSocket 连接失败，状态码：%d", resp.StatusCode)
 	}
 
+	// 使用通道来传递消息和错误
+	msgCh := make(chan string)
+	errCh := make(chan error)
+
+	// 发送消息的协程
 	go func() {
-
 		data := genParams1(appid, question)
-		conn.WriteJSON(data)
-
+		if err := conn.WriteJSON(data); err != nil {
+			errCh <- fmt.Errorf("发送数据失败: %s", err.Error())
+			return
+		}
 	}()
 
-	var answer = ""
-	//获取返回的数据
-	for {
-		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println("read message error:", err)
-			break
-		}
+	// 接收消息的协程
+	go func() {
+		var answer string
+		for {
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				errCh <- fmt.Errorf("读取消息失败: %s", err.Error())
+				return
+			}
 
-		var data map[string]interface{}
-		err1 := json.Unmarshal(msg, &data)
-		if err1 != nil {
-			fmt.Println("Error parsing JSON:", err)
-			return "Error parsing JSON:"
-		}
-		fmt.Println(string(msg))
-		//解析数据
-		payload := data["payload"].(map[string]interface{})
-		choices := payload["choices"].(map[string]interface{})
-		header := data["header"].(map[string]interface{})
-		code := header["code"].(float64)
+			var data map[string]interface{}
+			err = json.Unmarshal(msg, &data)
+			if err != nil {
+				errCh <- fmt.Errorf("解析 JSON 失败: %s", err.Error())
+				return
+			}
 
-		if code != 0 {
-			fmt.Println(data["payload"])
-			return "payload"
-		}
-		status := choices["status"].(float64)
-		fmt.Println(status)
-		text := choices["text"].([]interface{})
-		content := text[0].(map[string]interface{})["content"].(string)
-		if status != 2 {
-			answer += content
-		} else {
-			fmt.Println("收到最终结果")
-			answer += content
-			usage := payload["usage"].(map[string]interface{})
-			temp := usage["text"].(map[string]interface{})
-			totalTokens := temp["total_tokens"].(float64)
-			fmt.Println("total_tokens:", totalTokens)
-			conn.Close()
-			break
-		}
+			payload := data["payload"].(map[string]interface{})
+			choices := payload["choices"].(map[string]interface{})
+			header := data["header"].(map[string]interface{})
+			code := header["code"].(float64)
 
+			if code != 0 {
+				errCh <- fmt.Errorf("错误代码：%f", code)
+				return
+			}
+
+			status := choices["status"].(float64)
+			text := choices["text"].([]interface{})
+			content := text[0].(map[string]interface{})["content"].(string)
+
+			if status != 2 {
+				answer += content
+			} else {
+				answer += content
+				usage := payload["usage"].(map[string]interface{})
+				temp := usage["text"].(map[string]interface{})
+				totalTokens := temp["total_tokens"].(float64)
+				fmt.Println("total_tokens:", totalTokens)
+				msgCh <- answer
+				return
+			}
+		}
+	}()
+
+	// 监听消息或错误
+	select {
+	case answer := <-msgCh:
+		fmt.Println("spark的回答：", answer)
+		return answer, nil
+	case err := <-errCh:
+		return "", err
 	}
-	//输出返回结果
-	return answer
-
-	//time.Sleep(1 * time.Second)
 }
 
 // 生成参数
