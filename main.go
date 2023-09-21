@@ -81,7 +81,7 @@ func main() {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "客服消息发送成功"})
+		c.String(http.StatusOK, "success")
 	})
 
 	//被动消息回复
