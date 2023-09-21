@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -44,32 +45,32 @@ func main() {
 
 		// 构建消息体
 		// 构建请求参数
-		requestBody := []byte(fmt.Sprintf(`{
-			"touser": "%s",
-			"msgtype": "text",
-			"text": {
-				"content": "%s"
-			}
-		}`, reqMsg.ToUserName, answer))
-		//message := struct {
-		//	ToUser  string `json:"touser"`
-		//	MsgType string `json:"msgtype"`
-		//	Text    struct {
-		//		Content string `json:"content"`
-		//	} `json:"text"`
-		//}{
-		//	ToUser:  reqMsg.FromUserName,
-		//	MsgType: "text",
-		//}
-		//message.Text.Content = answer
+		//requestBody := []byte(fmt.Sprintf(`{
+		//	"touser": "%s",
+		//	"msgtype": "text",
+		//	"text": {
+		//		"content": "%s"
+		//	}
+		//}`, reqMsg.ToUserName, answer))
+		message := struct {
+			ToUser  string `json:"touser"`
+			MsgType string `json:"msgtype"`
+			Text    struct {
+				Content string `json:"content"`
+			} `json:"text"`
+		}{
+			ToUser:  reqMsg.FromUserName,
+			MsgType: "text",
+		}
+		message.Text.Content = answer
 
-		//fmt.Println("微信接口入参：", message)
 		// 将消息体转换为 JSON
-		fmt.Println("微信接口入参为：", string(requestBody))
-		//if err != nil {
-		//	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		//	return
-		//}
+		//fmt.Println("微信接口入参为：", string(requestBody))
+		requestBody, err := json.Marshal(message)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
 		// 发送 POST 请求到微信接口
 		url := "http://api.weixin.qq.com/cgi-bin/message/custom/send?from_appid=" + reqMsg.ToUserName
