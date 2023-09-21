@@ -31,7 +31,6 @@ func main() {
 		}
 
 		appid := c.GetHeader("x-wx-from-appid")
-		fmt.Printf("推送接收的账号 %s", reqMsg.FromUserName)
 		fmt.Printf("公众号 %s 接收用户openid为 %s 的 %s 消息：%s", appid, reqMsg.FromUserName, reqMsg.MsgType, reqMsg.Content)
 		//获取星火AI
 		var answer string
@@ -58,7 +57,6 @@ func main() {
 
 		// 将消息体转换为 JSON
 		requestBody, err := json.Marshal(message)
-		fmt.Println("requestBody为：", requestBody)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -84,8 +82,13 @@ func main() {
 			return
 		}
 
-		c.String(http.StatusOK, "success")
-		return
+		c.JSON(http.StatusOK, gin.H{
+			"ToUserName":   reqMsg.FromUserName,
+			"FromUserName": reqMsg.ToUserName,
+			"CreateTime":   reqMsg.CreateTime,
+			"MsgType":      reqMsg.MsgType,
+			"Content":      answer,
+		})
 	})
 
 	//被动消息回复
