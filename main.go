@@ -11,6 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 在主函数外部定义一个通道，用于接收异步处理中的答案
+var answerChannel = make(chan string)
+
 func main() {
 	r := gin.Default()
 
@@ -40,6 +43,9 @@ func main() {
 			if reqMsg.MsgType == "text" {
 				answer = util.SparkAnswer(reqMsg.Content)
 				fmt.Println("星火AI回答：", answer)
+
+				// 将答案发送到通道中
+				answerChannel <- answer
 			} else {
 				answer = "暂不支持文本以外的消息回复"
 				fmt.Println("不是文本消息,拒绝回答!")
@@ -88,12 +94,15 @@ func main() {
 			fmt.Println("异步处理完成")
 		}()
 
+		// 在主 goroutine 中等待答案并将其返回到客户端
+		answerFromAsync := <-answerChannel
+
 		c.JSON(http.StatusOK, gin.H{
 			"ToUserName":   reqMsg.FromUserName,
 			"FromUserName": reqMsg.ToUserName,
 			"CreateTime":   reqMsg.CreateTime,
 			"MsgType":      reqMsg.MsgType,
-			"Content":      "异步处理中",
+			"Content":      answerFromAsync, // 使用从通道接收到的答案
 		})
 	})
 
