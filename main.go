@@ -33,15 +33,30 @@ func main() {
 		fmt.Printf("公众号 %s 接收用户openid为 %s 的 %s 消息：%s", reqMsg.ToUserName, reqMsg.FromUserName, reqMsg.MsgType, reqMsg.Content)
 		fmt.Println("ToUserName:", reqMsg.ToUserName)
 		fmt.Println("FromUserName:", reqMsg.FromUserName)
-		//获取星火AI
-		var answer string
-		if reqMsg.MsgType == "text" {
-			answer, _ = util.SparkAnswer(reqMsg.Content)
-			fmt.Println("星火AI回答：", answer)
-		} else {
-			answer = "暂不支持文本以外的消息回复"
-			fmt.Println("不是文本消息,拒绝回答!")
-		}
+		////获取星火AI
+		//var answer string
+		//if reqMsg.MsgType == "text" {
+		//	answer, _ = util.SparkAnswer(reqMsg.Content)
+		//	fmt.Println("星火AI回答：", answer)
+		//} else {
+		//	answer = "暂不支持文本以外的消息回复"
+		//	fmt.Println("不是文本消息,拒绝回答!")
+		//}
+
+		// 定义管道，用于等待SparkAnswer的结果
+		answerChan := make(chan string)
+
+		// 在Go协程内执行SparkAnswer
+		go func() {
+			// 获取星火AI的回复
+			answer, _ := util.SparkAnswer(reqMsg.Content)
+
+			// 将回复放入管道
+			answerChan <- answer
+		}()
+
+		// 等待SparkAnswer完成并获取结果
+		answer := <-answerChan
 
 		// 构建请求参数
 		msgBody := struct {
@@ -73,7 +88,7 @@ func main() {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		//defer resp.Body.Close()
+		defer resp.Body.Close()
 
 		// 处理响应
 		// 这里你可以解析 resp.Body 中的响应数据或者处理其他逻辑
