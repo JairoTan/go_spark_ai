@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"go_spark_ai/util"
@@ -75,11 +76,19 @@ func main() {
 			url := "http://api.weixin.qq.com/cgi-bin/message/custom/send"
 			resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
 			fmt.Println("微信接口url：", url)
-			fmt.Println("微信接口返回内容：", resp)
 			if err != nil {
 				fmt.Println("请求微信接口报错：", err)
 				return
 			}
+
+			bodyBytes, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				fmt.Println("读取响应体失败:", err)
+				return
+			}
+			responseStr := string(bodyBytes)
+			fmt.Println("微信接口返回内容：", responseStr)
+
 			defer resp.Body.Close()
 
 			// 处理响应
