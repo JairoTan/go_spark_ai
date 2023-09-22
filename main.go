@@ -43,16 +43,8 @@ func main() {
 			fmt.Println("不是文本消息,拒绝回答!")
 		}
 
-		// 构建消息体
 		// 构建请求参数
-		//requestBody := []byte(fmt.Sprintf(`{
-		//	"touser": "%s",
-		//	"msgtype": "text",
-		//	"text": {
-		//		"content": "%s"
-		//	}
-		//}`, reqMsg.ToUserName, answer))
-		message := struct {
+		msgBody := struct {
 			ToUser  string `json:"touser"`
 			MsgType string `json:"msgtype"`
 			Text    struct {
@@ -62,11 +54,10 @@ func main() {
 			ToUser:  reqMsg.FromUserName,
 			MsgType: "text",
 		}
-		message.Text.Content = answer
+		msgBody.Text.Content = answer
 
 		// 将消息体转换为 JSON
-		//fmt.Println("微信接口入参为：", string(requestBody))
-		requestBody, err := json.Marshal(message)
+		requestBody, err := json.Marshal(msgBody)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -82,7 +73,7 @@ func main() {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		defer resp.Body.Close()
+		//defer resp.Body.Close()
 
 		// 处理响应
 		// 这里你可以解析 resp.Body 中的响应数据或者处理其他逻辑
